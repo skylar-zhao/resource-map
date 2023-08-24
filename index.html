@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+
+    <!-- "json" file -->
+    <script src="serviceData.js"></script>
+
+    <!-- css reset -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"
+        integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+        rel="stylesheet">
+
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.png">
+    <title>Resources in Chicago</title>
+</head>
+
+<body>
+    <h1>
+        Resources in Chicago
+    </h1>
+    <p>
+        There are many resources around Chicago for those in need. Here are the ones that I've gathered so far.
+    </p>
+    <p class="note">Please check the results. Some organizations have multiple locations or no public location, so they
+        will not show up on the map. Call ahead or check their website for more accurate information.</p>
+
+    <div class="wrapper">
+        <aside>
+            <div class="categoryWrapper">
+                <h2>
+                    Choose a category (or more) to get started:
+                </h2>
+                <!-- for testing
+                <div>
+                    <input type="text" id="testInput">
+                    <button onclick="filterData()">Submit</button>
+                </div> 
+                    <textarea id="testOutput"></textarea> 
+                -->
+                <div class="category" id="category">
+                    <!-- checkboxes and their labels made in the script go here -->
+                </div>
+            </div>
+            <div class="results" id="results">
+                <!-- results made in the script go here -->
+            </div>
+        </aside>
+        <div id="mapid"></div>
+    </div>
+
+    <script>
+        const map = L.map("mapid");
+        const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributers';
+        const tileURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileURL, { attribution });
+        tiles.addTo(map);
+
+        map.setView([41.87405220291398, -87.69832668764327], 11)
+        var layerGroup = L.layerGroup().addTo(map);
+
+        //test marker
+        // L.marker([41.94901035, -87.7081017]).addTo(layerGroup);
+
+        /* for testing
+        function filterData() {
+            var requestedFilter = document.querySelector("#testInput").value
+            var serviceResults = document.querySelector("#testOutput")
+            var result = ""
+
+            for (let s of serviceData) {
+                if (s.tags && Array.isArray(s.tags))
+                    for (let tag of s.tags) {
+                        if (tag == requestedFilter) {
+                            result += `${s.name}\n`; // \n is new line
+                        }
+                    }
+            }
+            serviceResults.value = result;
+        }
+        */
+
+        function generateCheckboxes() {
+            var allTags = []
+            for (let service of serviceData) {
+                if (service.tags && Array.isArray(service.tags))
+                    for (let tag of service.tags) {
+                        //if the array doesn't aleady have a tag, push it into the array
+                        if (!allTags.includes(tag)) {
+                            allTags.push(tag)
+                        }
+                    }
+            }
+
+            var categoryContainer = document.querySelector("#category")
+
+            for (let tag of allTags) {
+                var checkbox = document.createElement("input")
+                checkbox.addEventListener("change", updateResults)
+                checkbox.type = "checkbox"
+                checkbox.id = tag.replace(" ", "").replace(".", "")
+                checkbox.value = tag
+                var checkboxLabel = document.createElement("label")
+                checkboxLabel.htmlFor = tag.replace(" ", "").replace(".", "")
+                checkboxLabel.innerHTML = tag
+
+                var p = document.createElement("p")
+                p.appendChild(checkbox)
+                p.appendChild(checkboxLabel)
+                categoryContainer.appendChild(p)
+            }
+        }
+
+        function updateResults() {
+            //array of strings of slected checkbox labels 
+            var selectedCategories = [...document
+                //filter for checkboxes in the category div
+                .querySelectorAll("#category input[type=checkbox]")]
+                //filter out unchecked checkboxes
+                .filter(element => element.checked)
+                //convert to strings
+                .map(element => element.value)
+
+            // filter services that match category tags
+            let services = serviceData.filter(function (service) {
+                // check if all tags match
+                // return true if has all tags
+                // return false if service is missing a tag that is checked
+
+                for (var category of selectedCategories) {
+                    // check if there are tags and that the tags are an array
+                    if (service.tags && Array.isArray(service.tags)) {
+                        //check if selected tag is not included
+                        if (service.tags.includes(category) == false) {
+                            return false
+                        }
+                    } else {
+                        console.log(`${service.name} does not have valid tags.`)
+                        return false
+                    }
+                }
+                return true
+            })
+            // console.log(services)
+
+
+            // reset the UI
+            //from https://developer.mozilla.org/en-US/docs/Web/API/Node/removeChild
+            let element = document.querySelector("#results");
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+
+
+            // Result UI
+            var resultContainer = document.querySelector("#results")
+
+
+            for (var i = 0; i < services.length; i++) {
+                var service = services[i]
+
+                var result = document.createElement("div")
+                result.classList = "resultElement"
+                result.id = `result-${i}`
+
+                //1
+                if (service.name) {
+                    var pName = document.createElement("p")
+                    pName.classList = "resultName"
+
+                    if (service.website) {
+                        var websiteLink = document.createElement("a")
+                        websiteLink.href = service.website
+                        websiteLink.innerText = service.name
+
+                        pName.appendChild(websiteLink)
+                        result.appendChild(pName)
+                    }
+                    else {
+                        pName.innerText = service.name
+                        result.appendChild(pName)
+                    }
+                }
+
+                //2
+                if (service.address) {
+                    var pAddress = document.createElement("p")
+                    pAddress.innerText = service.address
+                    result.appendChild(pAddress)
+                }
+
+                //3
+                if (service.phone) {
+                    var pPhone = document.createElement("p")
+
+                    var phoneLink = document.createElement("a")
+                    phoneLink.href = "tel:" + service.phone
+                    phoneLink.innerText = service.phone
+
+                    pPhone.appendChild(phoneLink)
+                    result.appendChild(pPhone)
+                }
+                //4
+                if (service.hours) {
+                    var pHours = document.createElement("p")
+                    pHours.innerText = service.hours
+                    result.appendChild(pHours)
+                }
+
+                //5
+                if (service.description) {
+                    var pDescription = document.createElement("p")
+                    pDescription.classList = "resultDescription"
+
+                    pDescription.innerText = service.description
+                    result.appendChild(pDescription)
+                }
+
+                resultContainer.appendChild(result)
+            }
+
+            /*Result should look like:
+            <div class="resultElement">
+             (1) <p class="resultName"><a href="website">Ricon Family Services</a></p>
+             (2) <p>3710 N Kedzie Ave, Chicago, IL 60618</p>
+             (3) <p><a href="tel:'phone'">(321) 232-3321</a></p>
+             (4) <p>M-F 9AM-10PM</p>
+             (5) <p class="resultDescription">Services also offered in Spanish. More description here.</p>
+            </div>
+            */
+
+            // jesus christ idk why this line was so finicky but don't touch it or the map code or it might break
+            layerGroup.clearLayers()
+
+            //make markers for every service in the services array
+            for (var i = 0; i < services.length; i++) {
+                var service = services[i]
+                let resultElement = document.querySelector(`#result-${i}`)
+                if (service.lat && service.long) {
+                    marker = new L.marker([service.lat, service.long], {
+                        title: service.name
+                    })
+                    L.marker([service.lat, service.long], {
+                        title: service.name
+                    }).addTo(layerGroup)
+                        .bindPopup(`<h3 class="markerPopup">${service.name}</h3>`)
+                        .on("click", (event) => resultElement.scrollIntoView())
+                }
+
+            }
+            layerGroup.addTo(map);
+        }
+        generateCheckboxes()
+        updateResults()
+    </script>
+</body>
+
+</html>

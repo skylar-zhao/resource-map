@@ -1,0 +1,118 @@
+body {
+  font-family: "Ubuntu", "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+  margin: auto 0;
+}
+
+h1 {
+  font-size: 36px;
+  text-align: center;
+  margin: 10px auto;
+  font-weight: 900;
+}
+
+body > p {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+body > .note {
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.wrapper {
+  /*flex row for aside and map*/
+  display: flex;
+  height: 650px;
+  border: solid 2px rgb(160, 160, 160);
+}
+
+aside {
+  /*flex column for filters and resutls*/
+  display: flex;
+  flex-direction: column;
+
+  /*flexbox setting for wrapper*/
+  flex: 1 1 40%;
+}
+
+.categoryWrapper {
+  /*flex row for two columns of filters*/
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+
+  /*flexbox setting for aside*/
+  flex: 0 1 24%;
+  width: 100%;
+  padding: 5px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
+}
+
+.categoryWrapper > h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 3px 0px 8px 0px;
+  padding-left: 5px;
+}
+
+label:hover {
+  cursor: pointer;
+}
+
+label:active {
+  cursor: pointer;
+}
+
+.searchContainer {
+  align-self: end;
+}
+
+.category {
+  column-count: 3;
+  column-width: 160px;
+}
+
+.category p:first-child {
+  margin: 0 5px;
+}
+
+.category p {
+  margin: 5px;
+}
+
+.results {
+  /*flexbox setting for aside*/
+  flex: 1 1 70%;
+  overflow: auto;
+}
+
+.resultElement {
+  padding: 8px;
+  border-bottom: solid 2px rgb(216, 216, 216);
+}
+
+.resultElement p {
+  margin-bottom: 6px;
+}
+
+.resultElement p:last-child {
+  margin-bottom: 0px;
+}
+
+.resultElement > .resultName {
+  font-family: "Ubuntu", sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.resultElement > .resultDescription {
+  font-size: 14px;
+}
+
+#mapid {
+  /*flexbox setting for wrapper*/
+  flex: 1 1 59%;
+  height: 650px;
+}
